@@ -6,7 +6,7 @@
 <title>CloudStock 相册</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -278,6 +278,17 @@ let lbIndex = 0;
 let lbImages = [];
 
 // ==================== LOAD DATA ====================
+async function fetchPaged(build) {
+  const PAGE = 1000; const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const res = await build().range(from, from + PAGE - 1);
+    if (res.error) return { data: out, error: res.error };
+    const rows = res.data || [];
+    for (let i = 0; i < rows.length; i++) out.push(rows[i]);
+    if (rows.length < PAGE) break;
+  }
+  return { data: out, error: null };
+}
 async function loadData() {
   document.getElementById('loading').style.display = '';
   document.getElementById('productGrid').style.display = 'none';
@@ -285,9 +296,9 @@ async function loadData() {
 
   try {
     const [prodR, catR, pcR] = await Promise.all([
-      sb.from('products').select('*').eq('status', 'active').order('created_at', { ascending: false }),
+      fetchPaged(function() { return sb.from('products').select('*').eq('status', 'active').eq('gallery_listed', true).order('created_at', { ascending: false }).order('id', { ascending: false }); }),
       sb.from('categories').select('*').order('order_num', { ascending: true }),
-      sb.from('product_categories').select('*')
+      fetchPaged(function() { return sb.from('product_categories').select('*').order('product_id', { ascending: true }).order('category_id', { ascending: true }); })
     ]);
 
     Store.products = (prodR.data || []).map(p => ({
@@ -433,7 +444,7 @@ function renderGrid() {
     }
 
     const imgHtml = p.img
-      ? '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.remove()">
+      ? '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.remove()">'
       : '<div class="no-img">📦</div>';
 
     return '<div class="card" onclick="openLightbox(' + i + ')">' +
