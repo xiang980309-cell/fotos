@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#059669">
 <title>CloudStock 相册</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -227,7 +228,7 @@ img{max-width:100%;display:block}
     </div>
     <div class="hdr-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="搜索商品名称、品牌...">
+      <input type="text" id="searchInput" placeholder="搜索商品名称、品牌..." aria-label="搜索商品">
     </div>
     <div class="hdr-right">
       <span class="count-badge" id="prodCount">0 件商品</span>
@@ -256,7 +257,7 @@ img{max-width:100%;display:block}
 <!-- MAIN -->
 <main class="main">
   <div class="greeting" id="greeting">
-    <h1>📦 产品相册</h1>
+    <h1>产品相册</h1>
     <p>快速浏览我们的商品，查看各尺码库存</p>
   </div>
   <div id="loading" class="loading"><div class="spinner"></div>加载中...</div>
@@ -473,9 +474,9 @@ function renderGrid() {
 
     const imgHtml = p.img
       ? '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.remove()">'
-      : '<div class="no-img">📦</div>';
+      : '<div class="no-img">无图</div>';
 
-    return '<div class="card" onclick="openLightbox(' + i + ')">' +
+    return '<div class="card" tabindex="0" role="button" onclick="openLightbox(' + i + ')" onkeydown="if(event.key===''Enter''||event.key==='' ''){event.preventDefault();openLightbox(' + i + ')}">' +
       '<div class="card-img">' + imgHtml +
         (badgeHtml ? '<div class="card-badge">' + badgeHtml + '</div>' : '') +
         (stockCls ? '<div class="card-stock ' + stockCls + '">' + stockTxt + '</div>' : '') +
@@ -554,7 +555,7 @@ function openLightbox(idx) {
   if (lbImages.length > 1) {
     thumbsEl.innerHTML = lbImages.map((img, i) =>
       '<div class="lb-thumb ' + (i === 0 ? 'on' : '') + '" onclick="lbShowImg(' + i + ')">' +
-        (img ? '<img src="' + esc(img) + '">' : '📦') +
+        (img ? '<img src="' + esc(img) + '">' : '<span>无图</span>') +
       '</div>'
     ).join('');
     thumbsEl.style.display = '';
